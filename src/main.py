@@ -6,7 +6,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from monitoring.service import MonitoringService
-from monitoring.models import URLStatusResponse, URLHistoryResponse
+from datetime import datetime
+from monitoring.models import URLStatusResponse, URLHistoryResponse, URLStatus
+from pydantic import BaseModel
+
+
+class CreateMonitorRequest(BaseModel):
+    name: str
+    url: str
+
 
 app = FastAPI(title="ProtoPixel System Monitor")
 monitor = MonitoringService("config.json")
@@ -90,3 +98,28 @@ async def download_history_csv(name: str = None):
 
     filename = f"{name}-history.csv" if name else "all-history.csv"
     return FileResponse(path=filepath, filename=filename, media_type="text/csv")
+
+
+@app.post("/monitor", response_model=URLStatusResponse)
+async def create_monitor(request: CreateMonitorRequest):
+    """Create a new URL monitor"""
+    try:
+        url_config = monitor.add_url_monitor(request.name, request.url)
+        # Return initial status
+        return URLStatusResponse(
+            name=url_config.name,
+            url=url_config.url,
+            current_status=URLStatus.UNKNOWN,
+            last_check=datetime.now(),
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.delete("/monitor/{name}")
+async def delete_monitor(name: str):
+    """Delete a URL monitor"""
+    result = monitor.delete_url_monitor(name)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"URL monitor '{name}' not found")
+    return {"status": "deleted", "name": name}

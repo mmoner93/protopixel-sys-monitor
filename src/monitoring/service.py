@@ -24,6 +24,15 @@ class MonitoringService:
         self.status_history: Dict[str, List[StatusCheck]] = {}
         self.running = False
 
+    def _initialize_history(self) -> None:
+        """Initialize status history for configured URLs"""
+        if not self.config:
+            return
+
+        for url_config in self.config.urls:
+            if url_config.name not in self.status_history:
+                self.status_history[url_config.name] = []
+
     async def load_config(self) -> None:
         """Load configuration from file"""
         with open(self.config_path, "r") as f:
@@ -31,9 +40,7 @@ class MonitoringService:
             self.config = Config(**config_data)
 
         # Initialize history for each URL
-        for url_config in self.config.urls:
-            if url_config.name not in self.status_history:
-                self.status_history[url_config.name] = []
+        self._initialize_history()
 
     def cleanup_history(self, url_name: str) -> None:
         """Clean up old entries from URL history"""
@@ -81,6 +88,9 @@ class MonitoringService:
     async def monitor_urls(self) -> None:
         """Monitor all URLs periodically"""
         while self.running:
+            # Ensure history is initialized for all URLs
+            self._initialize_history()
+
             tasks = []
             for url_config in self.config.urls:
                 tasks.append(self.check_url(url_config))
@@ -144,6 +154,74 @@ class MonitoringService:
     async def stop(self) -> None:
         """Stop the monitoring service"""
         self.running = False
+
+    def save_config(self) -> None:
+        """Save current configuration to file"""
+        if not self.config:
+            return
+
+        with open(self.config_path, "w") as f:
+            json.dump(self.config.dict(), f, indent=4)
+
+    def add_url_monitor(self, name: str, url: str) -> URLConfig:
+        """Add a new URL monitor to configuration
+
+        Args:
+            name: Name of the URL monitor
+            url: URL to monitor
+
+        Returns:
+            URLConfig: The created URL monitor configuration
+
+        Raises:
+            ValueError: If URL with same name already exists
+        """
+        if not self.config:
+            raise RuntimeError("Configuration not loaded")
+
+        # Check if URL with same name already exists
+        if any(u.name == name for u in self.config.urls):
+            raise ValueError(f"URL monitor with name '{name}' already exists")
+
+        # Create and validate new URL config
+        new_url = URLConfig(name=name, url=url)
+
+        # Add to config
+        self.config.urls.append(new_url)
+
+        # Initialize history for new URL
+        self.status_history[name] = []
+
+        # Save updated config
+        self.save_config()
+
+        return new_url
+
+    def delete_url_monitor(self, name: str) -> Optional[URLConfig]:
+        """Delete a URL monitor from configuration
+
+        Args:
+            name: Name of the URL monitor to delete
+
+        Returns:
+            URLConfig: The deleted URL configuration or None if not found
+        """
+        if not self.config:
+            raise RuntimeError("Configuration not loaded")
+
+        # Find URL config to delete
+        url_config = next((u for u in self.config.urls if u.name == name), None)
+        if not url_config:
+            return None
+
+        # Remove from config and history
+        self.config.urls = [u for u in self.config.urls if u.name != name]
+        self.status_history.pop(name, None)
+
+        # Save updated config
+        self.save_config()
+
+        return url_config
 
     def save_monitoring_result(
         self,

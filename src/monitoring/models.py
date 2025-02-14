@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import List, Dict, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class URLStatus(str, Enum):
@@ -18,14 +18,20 @@ class StatusCheck(BaseModel):
 
 
 class URLConfig(BaseModel):
-    name: str
-    url: str
+    name: str = Field(min_length=1, description="Name of the URL to monitor")
+    url: str = Field(
+        min_length=1, pattern="^https?://", description="Valid HTTP(S) URL to monitor"
+    )
 
 
 class MonitoringConfig(BaseModel):
-    check_interval_seconds: int
-    timeout_seconds: int
-    history_retention_hours: int
+    check_interval_seconds: int = Field(
+        gt=0, description="Interval between checks in seconds"
+    )
+    timeout_seconds: int = Field(gt=0, description="Timeout for each check in seconds")
+    history_retention_hours: int = Field(
+        gt=0, description="Number of hours to retain history"
+    )
 
 
 class Config(BaseModel):
