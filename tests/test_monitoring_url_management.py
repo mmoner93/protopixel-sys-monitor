@@ -5,33 +5,8 @@ from src.monitoring.service import MonitoringService
 from src.monitoring.models import URLStatus
 
 
-@pytest.fixture
-def config_file(tmp_path):
-    config = {
-        "urls": [{"name": "test-url", "url": "http://example.com"}],
-        "monitoring": {
-            "check_interval_seconds": 60,
-            "timeout_seconds": 5,
-            "history_retention_hours": 1,
-        },
-    }
-    config_path = tmp_path / "test_config.json"
-    with open(config_path, "w") as f:
-        json.dump(config, f)
-    return str(config_path)
-
-
-@pytest.fixture
-async def monitoring_service(config_file):
-    service = MonitoringService(config_file)
-    await service.load_config()
-    return service
-
-
 @pytest.mark.asyncio
 async def test_add_url_monitor(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Add a new URL monitor
     url_config = monitoring_service.add_url_monitor(
         "test-new-url", "https://example.com"
@@ -54,8 +29,6 @@ async def test_add_url_monitor(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_add_duplicate_url_monitor(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Try to add URL with existing name
     with pytest.raises(ValueError) as exc_info:
         monitoring_service.add_url_monitor("test-url", "https://example.com")
@@ -65,8 +38,6 @@ async def test_add_duplicate_url_monitor(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_delete_url_monitor(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Delete existing URL
     url_config = monitoring_service.delete_url_monitor("test-url")
 
@@ -85,8 +56,6 @@ async def test_delete_url_monitor(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_delete_nonexistent_url_monitor(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Try to delete non-existent URL
     result = monitoring_service.delete_url_monitor("nonexistent")
     assert result is None
@@ -94,8 +63,6 @@ async def test_delete_nonexistent_url_monitor(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_runtime_url_addition(monitoring_service):
-    monitoring_service = await monitoring_service
-
     try:
         # Start with no URLs
         monitoring_service.config.urls = []
@@ -139,8 +106,6 @@ async def test_runtime_url_addition(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_runtime_mixed_url_addition(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Add a mix of working and failing URLs using add_url_monitor
     monitoring_service.add_url_monitor("good-url", "http://example.com")
     monitoring_service.add_url_monitor("bad-url", "http://nonexistent.example.com")
