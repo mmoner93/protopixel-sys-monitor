@@ -1,20 +1,20 @@
 {
     "urls": [
         {
-            "name": "google",
-            "url": "https://www.google.com"
-        },
-        {
             "name": "protopixel-api",
             "url": "https://api.protopixel.net"
         },
         {
             "name": "protopixel-web",
-            "url": "https://protopixel.net"
+            "url": "https://protopixel.io"
+        },
+        {
+            "name": "google",
+            "url": "https://google.cat"
         }
     ],
     "monitoring": {
-        "check_interval_seconds": 60,
+        "check_interval_seconds": 1,
         "timeout_seconds": 10,
         "history_retention_hours": 1
     }
