@@ -1,0 +1,1 @@
+{"urls": [{"name": "test-google", "url": "http://google.com"}], "monitoring": {"check_interval_seconds": 1, "timeout_seconds": 5, "history_retention_hours": 1}}
