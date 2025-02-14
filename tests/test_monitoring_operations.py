@@ -5,35 +5,8 @@ from src.monitoring.models import URLStatus, URLConfig
 from src.monitoring.service import MonitoringService
 
 
-@pytest.fixture
-def config_file(tmp_path):
-    config = {
-        "urls": [{"name": "test-url", "url": "http://example.com"}],
-        "monitoring": {
-            "check_interval_seconds": 60,
-            "timeout_seconds": 5,
-            "history_retention_hours": 1,
-        },
-    }
-    config_path = tmp_path / "test_config.json"
-    with open(config_path, "w") as f:
-        import json
-
-        json.dump(config, f)
-    return str(config_path)
-
-
-@pytest.fixture
-async def monitoring_service(config_file):
-    service = MonitoringService(config_file)
-    await service.load_config()
-    return service
-
-
 @pytest.mark.asyncio
 async def test_monitor_urls(monitoring_service):
-    monitoring_service = await monitoring_service
-
     try:
         # Start monitoring in background
         monitoring_task = asyncio.create_task(monitoring_service.monitor_urls())
@@ -65,8 +38,6 @@ async def test_monitor_urls(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_start_stop(monitoring_service):
-    monitoring_service = await monitoring_service
-
     try:
         # Start in background
         start_task = asyncio.create_task(monitoring_service.start())
@@ -96,8 +67,6 @@ async def test_start_stop(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_monitor_urls_with_mixed_results(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Add a mix of working and failing URLs
     monitoring_service.config.urls = [
         URLConfig(name="good-url", url="http://google.com"),
@@ -149,8 +118,6 @@ async def test_monitor_urls_with_mixed_results(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_check_url_timeout(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Create a URL config that will timeout
     monitoring_service.config.urls[
         0
@@ -167,8 +134,6 @@ async def test_check_url_timeout(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_check_url_error(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Create a URL config that will fail
     monitoring_service.config.urls[0].url = "http://nonexistent.example.com"
 
@@ -182,8 +147,6 @@ async def test_check_url_error(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_check_url_http_error(monitoring_service):
-    monitoring_service = await monitoring_service
-
     # Create a URL config that will return 404
     monitoring_service.config.urls[0].url = "http://httpstat.us/404"
 
