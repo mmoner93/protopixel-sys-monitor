@@ -72,3 +72,11 @@ When the server is running, visit:
 9. Create the Dockerfile.
 10. Create the docker-compose file.
 11. Refactor the tests into separeted files.
+
+## Improvements
+
+- Add a database to store the monitoring history.
+- Add ORM to interact with the database.
+- Implement user authentication with JWT or OAuth.
+- Implement new endpoint to modify the configuration file timers at runtime.
+- Implement a frontend to display the monitoring history.
