@@ -1,6 +1,10 @@
+import sys
+
+sys.path.append("src")
 import asyncio
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from monitoring.service import MonitoringService
 from monitoring.models import URLStatusResponse, URLHistoryResponse
 
@@ -45,3 +49,44 @@ async def get_url_history(name: str):
     if history is None:
         raise HTTPException(status_code=404, detail="URL not found")
     return history
+
+
+@app.post("/monitoring/start")
+async def start_monitoring():
+    """Start the monitoring service"""
+    if monitor.running:
+        raise HTTPException(status_code=400, detail="Monitoring is already running")
+    asyncio.create_task(monitor.start())
+    return {"status": "started"}
+
+
+@app.post("/monitoring/stop")
+async def stop_monitoring():
+    """Stop the monitoring service"""
+    if not monitor.running:
+        raise HTTPException(status_code=400, detail="Monitoring is not running")
+    await monitor.stop()
+    return {"status": "stopped"}
+
+
+@app.get("/monitoring/status")
+async def monitoring_status():
+    """Get the current status of the monitoring service"""
+    return {"running": monitor.running}
+
+
+@app.get("/download/csv")
+async def download_history_csv(name: str = None):
+    """
+    Download monitoring history as CSV. If name is provided, downloads history for that URL only.
+    Otherwise downloads history for all URLs.
+    """
+    filepath = monitor.save_monitoring_results(name)
+    if filepath is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No monitoring data available{f' for {name}' if name else ''}",
+        )
+
+    filename = f"{name}-history.csv" if name else "all-history.csv"
+    return FileResponse(path=filepath, filename=filename, media_type="text/csv")
