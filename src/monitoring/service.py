@@ -163,7 +163,7 @@ class MonitoringService:
             return
 
         with open(self.config_path, "w") as f:
-            json.dump(self.config.dict(), f, indent=4)
+            json.dump(self.config.model_dump(), f, indent=4)
 
     def add_url_monitor(self, name: str, url: str) -> URLConfig:
         """Add a new URL monitor to configuration
