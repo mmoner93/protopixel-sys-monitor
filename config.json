@@ -1,0 +1,21 @@
+{
+    "urls": [
+        {
+            "name": "google",
+            "url": "https://www.google.com"
+        },
+        {
+            "name": "protopixel-api",
+            "url": "https://api.protopixel.net"
+        },
+        {
+            "name": "protopixel-web",
+            "url": "https://protopixel.net"
+        }
+    ],
+    "monitoring": {
+        "check_interval_seconds": 60,
+        "timeout_seconds": 10,
+        "history_retention_hours": 1
+    }
+}
