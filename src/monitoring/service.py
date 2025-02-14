@@ -88,8 +88,10 @@ class MonitoringService:
     async def monitor_urls(self) -> None:
         """Monitor all URLs periodically"""
         while self.running:
-            # Ensure history is initialized for all URLs
-            self._initialize_history()
+            # Initialize history for any new URLs
+            for url_config in self.config.urls:
+                if url_config.name not in self.status_history:
+                    self.status_history[url_config.name] = []
 
             tasks = []
             for url_config in self.config.urls:

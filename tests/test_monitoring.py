@@ -561,19 +561,19 @@ async def test_runtime_url_addition(monitoring_service):
         monitoring_service.running = True
         await asyncio.sleep(0.1)
 
-        # Add URLs one by one
+        # Add URLs one by one using add_url_monitor
         urls = [
-            URLConfig(name="first-url", url="http://example.com"),
-            URLConfig(name="second-url", url="http://httpstat.us/200"),
+            ("first-url", "http://example.com"),
+            ("second-url", "http://httpstat.us/200"),
         ]
 
-        for url in urls:
-            monitoring_service.config.urls.append(url)
+        for name, url in urls:
+            monitoring_service.add_url_monitor(name, url)
             await asyncio.sleep(0.1)
 
             # Verify history is initialized immediately
-            assert url.name in monitoring_service.status_history
-            assert isinstance(monitoring_service.status_history[url.name], list)
+            assert name in monitoring_service.status_history
+            assert isinstance(monitoring_service.status_history[name], list)
 
         # Stop monitoring
         monitoring_service.running = False
@@ -600,9 +600,8 @@ async def test_runtime_url_addition(monitoring_service):
         monitoring_service.running = True
         await asyncio.sleep(0.1)
 
-        # Add a new URL at runtime
-        new_url = URLConfig(name="runtime-url", url="http://example.com")
-        monitoring_service.config.urls.append(new_url)
+        # Add a new URL at runtime using add_url_monitor
+        monitoring_service.add_url_monitor("runtime-url", "http://example.com")
 
         # Let it run a bit more to monitor new URL
         await asyncio.sleep(0.1)
@@ -632,12 +631,10 @@ async def test_runtime_url_addition(monitoring_service):
         # Ensure service is stopped
         monitoring_service.running = False
 
-    # Add a mix of working and failing URLs
-    monitoring_service.config.urls = [
-        URLConfig(name="good-url", url="http://example.com"),
-        URLConfig(name="bad-url", url="http://nonexistent.example.com"),
-        URLConfig(name="error-url", url="http://httpstat.us/500"),
-    ]
+    # Add a mix of working and failing URLs using add_url_monitor
+    monitoring_service.add_url_monitor("good-url", "http://example.com")
+    monitoring_service.add_url_monitor("bad-url", "http://nonexistent.example.com")
+    monitoring_service.add_url_monitor("error-url", "http://httpstat.us/500")
 
     try:
         # Start monitoring in background
