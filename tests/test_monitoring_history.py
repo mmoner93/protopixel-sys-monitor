@@ -6,22 +6,6 @@ from src.monitoring.models import URLStatus, StatusCheck
 from src.monitoring.service import MonitoringService
 
 
-@pytest.fixture
-def config_file(tmp_path):
-    config = {
-        "urls": [{"name": "test-url", "url": "http://example.com"}],
-        "monitoring": {
-            "check_interval_seconds": 60,
-            "timeout_seconds": 5,
-            "history_retention_hours": 1,
-        },
-    }
-    config_path = tmp_path / "test_config.json"
-    with open(config_path, "w") as f:
-        json.dump(config, f)
-    return str(config_path)
-
-
 @pytest_asyncio.fixture
 async def monitoring_service(config_file):
     service = MonitoringService(config_file)
@@ -31,7 +15,6 @@ async def monitoring_service(config_file):
 
 @pytest.mark.asyncio
 async def test_history_cleanup(monitoring_service):
-
     # Add some test history data
     now = datetime.now()
     old_check = StatusCheck(
@@ -61,7 +44,6 @@ async def test_history_cleanup(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_get_url_status(monitoring_service):
-
     # Add a test status
     check = StatusCheck(
         timestamp=datetime.now(), status=URLStatus.UP, response_time=0.1
@@ -85,7 +67,6 @@ async def test_get_nonexistent_url_status(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_get_empty_url_status(monitoring_service):
-
     # Create empty history
     monitoring_service.status_history["test-url"] = []
 
@@ -100,7 +81,6 @@ async def test_get_empty_url_status(monitoring_service):
 
 @pytest.mark.asyncio
 async def test_get_url_history(monitoring_service):
-
     # Add test history
     check = StatusCheck(
         timestamp=datetime.now(), status=URLStatus.UP, response_time=0.1

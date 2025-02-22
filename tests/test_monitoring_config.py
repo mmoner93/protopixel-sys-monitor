@@ -5,22 +5,6 @@ from pydantic import ValidationError
 from src.monitoring.service import MonitoringService
 
 
-@pytest.fixture
-def config_file(tmp_path):
-    config = {
-        "urls": [{"name": "test-url", "url": "http://example.com"}],
-        "monitoring": {
-            "check_interval_seconds": 60,
-            "timeout_seconds": 5,
-            "history_retention_hours": 1,
-        },
-    }
-    config_path = tmp_path / "test_config.json"
-    with open(config_path, "w") as f:
-        json.dump(config, f)
-    return str(config_path)
-
-
 @pytest_asyncio.fixture
 async def monitoring_service(config_file):
     service = MonitoringService(config_file)
